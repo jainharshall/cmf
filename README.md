@@ -10,7 +10,7 @@
 ![Python](https://img.shields.io/badge/python-3.9%2B-yellow?style=flat-square)
 [![Stars](https://img.shields.io/github/stars/jainharshall/cmf?style=flat-square)](https://github.com/jainharshall/cmf/stargazers)
 
-<img src="docs/screenshot.png" width="320" alt="cmfpc tray menu">
+<img src="docs/screenshot.png" width="560" alt="cmfpc tray menu">
 
 </div>
 
