@@ -35,14 +35,30 @@ class Device:
         for f in self.read_frames(seconds):
             print(f"cmd=0x{f.command:04X} op={f.op_id} payload={f.payload.hex()}")
 
+    def request(self, command, resp_command, payload=b"", timeout=2.0):
+        self.send(command, payload)
+        end = time.time() + timeout
+        while time.time() < end:
+            for f in self.parser.feed(self.t.recv()):
+                if f.command == resp_command:
+                    return f
+        return None
+
     def get_battery(self):
         from .protocol import BATTERY_REQ, BATTERY_RESP, parse_battery
-        self.send(BATTERY_REQ)
-        for f in self.read_frames(2):
-            if f.command == BATTERY_RESP:
-                return parse_battery(f.payload)
+        f = self.request(BATTERY_REQ, BATTERY_RESP)
+        return parse_battery(f.payload) if f else None
 
-    
+    def get_anc(self):
+        from .protocol import ANC_GET_REQ, ANC_GET_RESP, parse_anc_byte
+        f = self.request(ANC_GET_REQ, ANC_GET_RESP)
+        if not f:
+            return None
+        byte = parse_anc_byte(f.payload)
+        for name, v in self.p["anc_modes"].items():
+            if _hex(v) == byte:
+                return name
+        return f"unknown(0x{byte:02x})"
 
     def set_anc(self, mode: str):
         byte = _hex(self.p["anc_modes"][mode])

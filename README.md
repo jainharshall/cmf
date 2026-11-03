@@ -1,25 +1,68 @@
-# cmfpc
+\# cmfpc
 
-Unofficial PC companion for Nothing / CMF earbuds (CMF Buds 2, Buds Pro 2). Not affiliated with Nothing.
 
-Status: **early scaffold.** Codec and tests work; the device commands in `profiles/` are placeholders until verified via HCI capture (`docs/PROTOCOL.md`).
 
-## Architecture
-transport (RFCOMM) -> codec (frames, CRC) -> device (high-level API) -> CLI / future tray UI.
-Per-model behaviour lives in `src/cmfpc/profiles/*.json`, so adding a device means adding a file.
+Unofficial Windows tray app for Nothing / CMF earbuds. Not affiliated with Nothing.
 
-## Use
+
+
+\## Supported
+
+| Device | Battery | ANC modes | Current mode readout |
+
+|---|---|---|---|
+
+| CMF Buds 2 | verified | verified | verified |
+
+| CMF Buds Pro 2 | untested | untested | untested |
+
+
+
+\## Use
+
+1\. Pair the buds in Windows Bluetooth settings.
+
+2\. Download `cmfpc-tray.exe` from the Releases page and run it.
+
+3\. Right-click the grey dot in the system tray (it may be under the `^` arrow).
+
+
+
+The menu shows left/right battery and lets you switch Noise cancellation / Transparency / Off.
+
+
+
+Windows SmartScreen may warn about the file because it is not signed. Click "More info", then "Run anyway".
+
+
+
+\## How it works
+
+The buds expose a custom Bluetooth serial service (UUID `aeac4a03-dff5-498f-843a-34487cf133eb`).
+
+Windows has no fixed channel number for it, so the app connects by UUID through WinRT.
+
+Details are in \[docs/PROTOCOL.md](docs/PROTOCOL.md).
+
+
+
+\## Run from source
+
 ```
+
 pip install -e .
+
+pip install pystray pillow winrt-runtime winrt-Windows.Devices.Bluetooth winrt-Windows.Devices.Bluetooth.Rfcomm winrt-Windows.Devices.Enumeration winrt-Windows.Networking winrt-Windows.Networking.Sockets winrt-Windows.Foundation winrt-Windows.Foundation.Collections winrt-Windows.Storage.Streams
+
+python -m cmfpc.tray
+
 python -m pytest
-cmfpc models
-cmfpc probe AA:BB:CC:DD:EE:FF            # find RFCOMM channel
-cmfpc dump AA:BB:CC:DD:EE:FF --model cmf_buds_2 --channel N
+
 ```
 
-## Roadmap
-- [ ] Verify framing + battery from capture
-- [ ] ANC modes
-- [ ] In-ear detection, find device
-- [ ] Tray UI
-- [ ] EQ, gestures
+
+
+\## Adding another device
+
+Copy a JSON file in `src/cmfpc/profiles/`, fill in the verified bytes, and open a pull request.
+

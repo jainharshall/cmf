@@ -1,6 +1,6 @@
 {
   "name": "cmf_buds_2",
-  "_status": "UNVERIFIED: every value below is a placeholder to confirm from your HCI capture",
+  "_status": "VERIFIED on hardware: battery, anc (off=0x05, transparency=0x07, anc=0x01). Everything else unverified.",
   "service_uuid": "aeac4a03-dff5-498f-843a-34487cf133eb",
   "header": "556001",
   "crc": true,
