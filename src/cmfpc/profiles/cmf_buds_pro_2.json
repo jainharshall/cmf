@@ -1,7 +1,7 @@
 {
   "name": "cmf_buds_pro_2",
   "_status": "UNVERIFIED: every value below is a placeholder to confirm from your HCI capture",
-  "rfcomm_channel": null,
+  "service_uuid": "aeac4a03-dff5-498f-843a-34487cf133eb",
   "header": "556001",
   "crc": true,
   "commands": {

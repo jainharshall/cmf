@@ -1,6 +1,6 @@
 import time
 from . import codec, profiles
-from .transport import RfcommTransport
+from .transport import WinRtTransport
 
 
 def _hex(v: str) -> int:
@@ -10,12 +10,9 @@ def _hex(v: str) -> int:
 class Device:
     def __init__(self, address: str, model: str, channel=None):
         self.p = profiles.load(model)
-        ch = channel or self.p["rfcomm_channel"]
-        if not ch:
-            raise ValueError("RFCOMM channel unknown: pass --channel or run `cmfpc probe`")
         self.header = bytes.fromhex(self.p["header"])
         self.parser = codec.FrameParser(self.header, self.p["crc"])
-        self.t = RfcommTransport(address, ch)
+        self.t = WinRtTransport(address, self.p["service_uuid"])
 
     def __enter__(self):
         self.t.open()
@@ -39,9 +36,13 @@ class Device:
             print(f"cmd=0x{f.command:04X} op={f.op_id} payload={f.payload.hex()}")
 
     def get_battery(self):
-        c = self.p["commands"]["get_battery"]
-        self.send(_hex(c["id"]), bytes.fromhex(c["payload"]))
-        return self.read_frames()
+        from .protocol import BATTERY_REQ, BATTERY_RESP, parse_battery
+        self.send(BATTERY_REQ)
+        for f in self.read_frames(2):
+            if f.command == BATTERY_RESP:
+                return parse_battery(f.payload)
+
+    
 
     def set_anc(self, mode: str):
         byte = _hex(self.p["anc_modes"][mode])

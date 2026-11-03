@@ -1,15 +1,13 @@
 import argparse
 from . import profiles
 from .device import Device
-from .transport import probe_channels
+
 
 
 def main():
     ap = argparse.ArgumentParser(prog="cmfpc")
     sub = ap.add_subparsers(dest="cmd", required=True)
     sub.add_parser("models")
-    p = sub.add_parser("probe")
-    p.add_argument("address")
     for name in ("dump", "battery", "anc"):
         s = sub.add_parser(name)
         s.add_argument("address")
@@ -21,8 +19,10 @@ def main():
 
     if a.cmd == "models":
         print("\n".join(profiles.available()))
-    elif a.cmd == "probe":
-        print("open RFCOMM channels:", probe_channels(a.address))
+
+    elif a.cmd == "battery":
+        print(d.get_battery())
+        
     else:
         with Device(a.address, a.model, a.channel) as d:
             if a.cmd == "dump":
