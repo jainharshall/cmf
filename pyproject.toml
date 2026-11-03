@@ -1,0 +1,19 @@
+[project]
+name = "cmfpc"
+version = "0.1.0"
+description = "Unofficial PC companion for Nothing / CMF earbuds"
+requires-python = ">=3.9"
+dependencies = []
+
+[project.scripts]
+cmfpc = "cmfpc.cli:main"
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+cmfpc = ["profiles/*.json"]
