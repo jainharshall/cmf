@@ -2,10 +2,12 @@
 import asyncio
 import sys
 import threading
+import time
 from pathlib import Path
 
 import webview
 
+from . import features as F
 from .device import Device
 from .tray import _find
 
@@ -57,6 +59,40 @@ class Api:
             except Exception:
                 self._drop()
                 return False
+
+    def settings(self):
+        with self._lock:
+            if self._dev is None:
+                return None
+            d = self._dev
+            try:
+                return {"eq": F.get_eq_preset(d), "bass": F.get_bass(d), "spatial": F.get_spatial(d),
+                        "latency": F.get_low_latency(d), "inear": F.get_in_ear(d)}
+            except Exception:
+                self._drop()
+                return None
+
+    def set_feature(self, name, value):
+        with self._lock:
+            if self._dev is None:
+                return None
+            d = self._dev
+            try:
+                if name == "bass":
+                    F.set_bass(d, bool(value["enabled"]), int(value["level"]))
+                elif name == "eq":
+                    F.set_eq_preset(d, value)
+                elif name == "spatial":
+                    F.set_spatial(d, value)
+                elif name == "latency":
+                    F.set_low_latency(d, bool(value))
+                elif name == "inear":
+                    F.set_in_ear(d, bool(value))
+                time.sleep(0.4)
+            except Exception:
+                self._drop()
+                return None
+        return self.settings()
 
 
 def main():

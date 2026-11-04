@@ -1,5 +1,6 @@
 import sys
 import threading
+import re
 
 import pystray
 from PIL import Image, ImageDraw

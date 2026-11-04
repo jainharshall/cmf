@@ -33,7 +33,12 @@ svg.ic{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:1.8;str
 .vals .nz{color:var(--red)}
 .pills{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .pills button{background:var(--card);color:var(--mute);border:0;border-radius:30px;padding:16px;letter-spacing:.1em;font-size:12px}
-.pills .act{background:var(--red);color:#fff;grid-column:1/3}
+.pills .act{background:var(--red);color:#fff}.pills .wide{grid-column:1/3}
+.sw{width:52px;height:30px;border-radius:16px;background:#555;position:relative;border:0;padding:0;display:block;flex:none}
+.sw::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#111;transition:.15s}
+.sw.on{background:#f2f2f2}.sw.on::after{left:25px}
+.tile>.sw{margin-top:18px}.row{display:flex;justify-content:space-between;align-items:center;margin-top:18px}
+.lv{display:flex;gap:5px}.lv i{width:6px;height:20px;border-radius:2px;background:#444;cursor:pointer}.lv i.on{background:var(--red)}
 </style></head><body>
 
 <div id="main">
@@ -55,10 +60,12 @@ svg.ic{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:1.8;str
   </section>
 
   <div class="grid">
-    <button class="tile" id="openEq"><div>Equaliser<small>Preview</small></div></button>
-    <div class="tile off"><div>Ultra Bass<small>Coming soon</small></div></div>
-    <div class="tile off"><div>Spatial Audio<small>Coming soon</small></div></div>
-    <div class="tile off"><div>Low Lag Mode<small>Coming soon</small></div></div>
+    <button class="tile" id="openEq"><div>Equaliser<small id="eqSub">–</small></div></button>
+    <div class="tile"><div>Ultra Bass<small id="bassSub">–</small></div>
+      <div class="row"><button class="sw" id="bassSw"></button><div class="lv" id="bassLv"><i></i><i></i><i></i><i></i><i></i></div></div></div>
+    <button class="tile" id="tSpatial"><div>Spatial Audio<small id="spSub">–</small></div><span class="sw" id="spSw"></span></button>
+    <button class="tile" id="tLat"><div>Low Lag Mode<small id="latSub">–</small></div><span class="sw" id="latSw"></span></button>
+    <button class="tile" id="tEar"><div>In-ear detection<small id="earSub">–</small></div><span class="sw" id="earSw"></span></button>
     <div class="tile off"><div>Dual Connection<small>Coming soon</small></div></div>
     <div class="tile off"><div>Controls<small>Coming soon</small></div></div>
   </div>
@@ -67,7 +74,7 @@ svg.ic{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:1.8;str
 <div id="eq" class="hidden">
   <button class="back" id="back">←</button>
   <h1 style="margin-top:14px">Equaliser</h1>
-  <div class="banner">Preview only: not connected to your buds yet.</div>
+  <div class="banner">Presets work. The circle (custom EQ) is a preview and not connected yet.</div>
   <svg id="eqsvg" viewBox="0 0 400 400">
     <circle cx="200" cy="200" r="190" fill="#1d1d1d"/>
     <circle cx="200" cy="200" r="85" fill="none" stroke="#2a2a2a" stroke-width="2"/>
@@ -76,9 +83,10 @@ svg.ic{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:1.8;str
   </svg>
   <div class="vals"><span id="vb">Bass 0</span><span id="vm">Mid 0</span><span id="vt">Treble 0</span></div>
   <div class="pills">
-    <button disabled>POP</button><button disabled>ROCK</button>
-    <button disabled>CLASSICAL</button><button disabled>ELECTRONIC</button>
-    <button disabled>ENHANCE VOCALS</button><button class="act">CUSTOM</button>
+    <button data-eq="dirac">DIRAC OPTEO</button><button data-eq="pop">POP</button>
+    <button data-eq="rock">ROCK</button><button data-eq="classical">CLASSICAL</button>
+    <button data-eq="electronic">ELECTRONIC</button><button data-eq="vocals">ENHANCE VOCALS</button>
+    <button data-eq="custom" class="wide">CUSTOM</button>
   </div>
 </div>
 
@@ -89,7 +97,8 @@ const NAMES={anc:"Noise Cancellation",transparency:"Transparency",off:"Off"};
 function render(s){
   $('#dot').classList.toggle('on',!!s.connected);
   $('#status').textContent=s.connected?'':(s.error||'Not connected');
-  if(!s.connected)return;
+  if(!s.connected){loaded=false;return}
+  if(!loaded){loaded=true;loadSettings()}
   const b=s.battery||{};
   for(const [k,id] of [['left','l'],['right','r']]){
     const v=b[k];
@@ -107,6 +116,28 @@ document.querySelectorAll('.modes button').forEach(btn=>btn.onclick=async()=>{
   await pywebview.api.set_anc(m);
 });
 window.addEventListener('pywebviewready',()=>{poll();setInterval(poll,5000)});
+
+let loaded=false,S={};
+const sw=(id,on)=>$('#'+id).classList.toggle('on',!!on);
+const EQN={dirac:'Dirac Opteo',pop:'Pop',rock:'Rock',classical:'Classical',electronic:'Electronic',vocals:'Enhance Vocals',custom:'Custom'};
+function renderSettings(s){
+  if(!s)return;S=s;const b=s.bass||{};
+  sw('bassSw',b.enabled);$('#bassSub').textContent=b.enabled?'On · Level '+b.level:'Off';
+  document.querySelectorAll('#bassLv i').forEach((e,i)=>e.classList.toggle('on',b.enabled&&i<b.level));
+  const sp=s.spatial==='fixed';sw('spSw',sp);$('#spSub').textContent=sp?'Fixed':'Off';
+  sw('latSw',s.latency);$('#latSub').textContent=s.latency?'On':'Off';
+  sw('earSw',s.inear);$('#earSub').textContent=s.inear?'On':'Off';
+  $('#eqSub').textContent=EQN[s.eq]||s.eq||'–';
+  document.querySelectorAll('.pills button').forEach(p=>p.classList.toggle('act',p.dataset.eq===s.eq));
+}
+async function loadSettings(){try{renderSettings(await pywebview.api.settings())}catch(e){}}
+async function setF(n,v){try{renderSettings(await pywebview.api.set_feature(n,v))}catch(e){}}
+$('#bassSw').onclick=()=>S.bass&&setF('bass',{enabled:!S.bass.enabled,level:S.bass.level||3});
+document.querySelectorAll('#bassLv i').forEach((e,i)=>e.onclick=()=>setF('bass',{enabled:true,level:i+1}));
+$('#tSpatial').onclick=()=>setF('spatial',S.spatial==='fixed'?'off':'fixed');
+$('#tLat').onclick=()=>setF('latency',!S.latency);
+$('#tEar').onclick=()=>setF('inear',!S.inear);
+document.querySelectorAll('.pills button').forEach(p=>p.onclick=()=>setF('eq',p.dataset.eq));
 
 /* Equaliser preview */
 $('#openEq').onclick=()=>{$('#main').classList.add('hidden');$('#eq').classList.remove('hidden')};

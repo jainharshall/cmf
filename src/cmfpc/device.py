@@ -49,6 +49,9 @@ class Device:
         f = self.request(BATTERY_REQ, BATTERY_RESP)
         return parse_battery(f.payload) if f else None
 
+        if byte in (1, 2, 3, 4):
+            return "anc"
+
     def get_anc(self):
         from .protocol import ANC_GET_REQ, ANC_GET_RESP, parse_anc_byte
         f = self.request(ANC_GET_REQ, ANC_GET_RESP)
