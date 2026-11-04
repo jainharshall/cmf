@@ -8,7 +8,7 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-green?style=flat-square)](LICENSE)
 ![Platform](https://img.shields.io/badge/platform-Windows%2010%2F11-blue?style=flat-square)
 
-<img src="docs/screenshot.png" width="360" alt="cmfpc window">
+<img src="docs/screenshot.png" width="300" alt="cmfpc window"> <img src="docs/screenshot2.png" width="300" alt="cmfpc equaliser">
 
 </div>
 
