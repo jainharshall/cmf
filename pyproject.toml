@@ -16,4 +16,5 @@ build-backend = "setuptools.build_meta"
 where = ["src"]
 
 [tool.setuptools.package-data]
-cmfpc = ["profiles/*.json"]
+cmfpc = ["profiles/*.json", "ui/*.html"]
+

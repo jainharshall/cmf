@@ -105,10 +105,19 @@ async def _find():
     out = []
     for i in infos:
         model = i.name.lower().replace(" ", "_")
-        if model in profiles.available():
+        if model not in profiles.available():
+            continue
+        # the remote MAC is the end of the device id, so no need to open the device
+        m = re.search(r"((?:[0-9a-fA-F]{2}:){5}[0-9a-fA-F]{2})$", i.id)
+        if m:
+            out.append((m.group(1).upper(), model))
+            continue
+        try:
             dev = await BluetoothDevice.from_id_async(i.id)
-            a = f"{dev.bluetooth_address:012X}"
-            out.append((":".join(a[j:j + 2] for j in range(0, 12, 2)), model))
+        except OSError:
+            continue
+        a = f"{dev.bluetooth_address:012X}"
+        out.append((":".join(a[j:j + 2] for j in range(0, 12, 2)), model))
     return out
 
 
